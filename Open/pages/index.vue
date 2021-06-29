@@ -5,11 +5,8 @@
 <script lang="ts">
 import { Vue, Component } from "vue-property-decorator";
 import { State } from "vuex-class";
-
 import LoginModal from "../../MCA-AYIM/components/header/LoginModal.vue";
-
 import { UserInfo } from "../../Interfaces/user";
-
 @Component({
     components: {
         LoginModal,
@@ -21,11 +18,8 @@ import { UserInfo } from "../../Interfaces/user";
     },
 })
 export default class Default extends Vue {
-
     @State loggedInUser!: UserInfo;
-
     showLoginModal = false;
-
     get avatarURL (): string  {
         return this.loggedInUser?.osu?.avatar || "";
     }
@@ -33,7 +27,6 @@ export default class Default extends Vue {
     toogleLoginModal (): void {
         this.showLoginModal = !this.showLoginModal;
     }
-
     async mounted () {
         await this.$store.dispatch("setInitialData");
     }
@@ -42,5 +35,4 @@ export default class Default extends Vue {
 </script>
 
 <style lang="scss">
-
 </style>
