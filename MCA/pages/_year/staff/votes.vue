@@ -52,11 +52,14 @@
                                             </a>
                                         </div>
                                         <div class="staff-vote__count">
-                                            <div
-                                                v-for="(round, i) in result.rounds"
-                                                :key="i" 
-                                            >
-                                                Round #{{i}}: {{ round }}
+                                            <div>
+                                                Placement: {{ result.placement }}
+                                            </div>
+                                            <div>
+                                                1st Choice Count: {{ result.firstPlaceCount }}
+                                            </div>
+                                            <div>
+                                                Total Count: {{ result.totalCount }}
                                             </div>
                                             <div>
                                                 Count: {{ result.count }}
@@ -129,25 +132,9 @@ import SearchBar from "../../../../MCA-AYIM/components/SearchBar.vue";
 import ToggleButton from "../../../../MCA-AYIM/components/ToggleButton.vue";
 
 import { CategoryInfo } from "../../../../Interfaces/category";
-import { StaffVote } from "../../../../Interfaces/vote";
+import { ResultVote, StaffVote, UserVote, voteCounter } from "../../../../Interfaces/vote";
 
 const staffModule = namespace("staff");
-
-interface ResultVote extends StaffVote {
-    used: boolean;
-    inRace: boolean;
-    count: number;
-    rounds: number[];
-}
-
-interface UserVote {
-    voter: {
-        osuID: string;
-        osuUsername: string;
-        discordUsername: string;
-    },
-    votes: ResultVote[]
-}
 
 interface VotesByCategory {
     category: number;
@@ -263,75 +250,9 @@ export default class Votes extends Vue {
 
     get resultsByCategory (): ResultsByCategory[] {
         return this.votesByCategory.map(category => {
-            const votes = category.userVotes
-            let candidates: ResultVote[] = [];
-            for (const voter of votes) {
-                for (const vote of voter.votes) {
-                    if (!candidates.some(candidate => vote.beatmapset?.ID ? vote.beatmapset?.ID === candidate.beatmapset?.ID : vote.user?.osuID === candidate.user?.osuID)) {
-                        candidates.push({
-                            rounds: [] as number[],
-                            count: 0,
-                            inRace: true,
-                            beatmapset: vote.beatmapset ?? undefined,
-                            user: vote.user ?? undefined,
-                        } as ResultVote);
-                    }
-                }
-            }
-            candidates = candidates.filter((val, i, self) => self.findIndex(v => v.beatmapset?.ID ? v.beatmapset?.ID === val.beatmapset?.ID : v.user?.osuID === val.user?.osuID) === i);
-
-            for (;;) {
-                for (let i = 0; i < votes.length; i++) {
-                    const voter = votes[i];
-                    for (let j = 0; j < voter.votes.length; j++) {
-                        const vote = voter.votes[j];
-                        if (!vote.inRace) continue;
-
-                        const k = candidates.findIndex(candidate => vote.beatmapset?.ID ? vote.beatmapset?.ID === candidate.beatmapset?.ID : vote.user?.osuID === candidate.user?.osuID);
-                        if (!candidates[k].inRace) {
-                            votes[i].votes[j].inRace = false;
-                            continue;
-                        }
-                        if (vote.used)
-                            break;
-
-                        candidates[k].count += 1;
-                        votes[i].votes[j].used = true;
-                        break;
-                    }
-                }
-                candidates = candidates.sort((a, b) => b.count - a.count);
-                if (candidates[candidates.length - 1].inRace && candidates[candidates.length - 1].count === 0) {
-                    for (let i = candidates.length - 1; i > 0; i--) {
-                        if (candidates[i].count > 0) break;
-            
-                        candidates[i].inRace = false;
-                    }
-                }
-
-                const inRace = candidates.filter(candidate => candidate.inRace);
-                let sum = 0;
-                let min = inRace[inRace.length - 1].count;
-                inRace.forEach(candidate => sum += candidate.count);
-                if (candidates[0].count > sum / 2.0 || candidates[0].count === min)
-                    break;
-
-                for (let i = candidates.length - 1; i > 0; i--) {
-                    if (candidates[i].count > min) break;
-
-                    candidates[i].inRace = false;
-                }
-
-                for (let i = 0; i < candidates.length; i++) {
-                    if (!candidates[i].rounds) candidates[i].rounds = [];
-
-                    candidates[i].rounds.push(candidates[i].count);
-                }
-            }
-
             return {
                 category: category.category,
-                results: candidates
+                results: voteCounter(category.userVotes),
             };
         })
     }
