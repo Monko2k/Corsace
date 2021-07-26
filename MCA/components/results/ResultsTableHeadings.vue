@@ -1,11 +1,11 @@
 <template>
     <span class="table-headings">
         <span
-            v-for="(col, i) in filtCol"
+            v-for="(col, i) in columns"
             :key="i"
-            :class="((col.name) ? `heading-${col.name}` : `heading-${col.label}`) +
-                    ((col.centred) ? ' heading-centred' : '') + 
-                    ((col.prio) ? ' heading-prio' : '')"
+            :class="[((col.name) ? `heading-${col.name}` : `heading-${col.label}`),
+                     ((col.centred) ? ' heading-centred' : ''),
+                     ((col.prio) ? ' heading-prio' : '')]"
             :style="{'flex': `${mobile && col.msize ? col.msize : col.size}`}"
         >
             {{ (col.label) ? $t(`mca.results.headings.${col.label}`) : '' }}
@@ -18,19 +18,10 @@ import { Vue, Prop, Component } from "vue-property-decorator";
 import { ResultColumn } from "../../../Interfaces/result";
 
 @Component({})
-export default class ResultsFilters extends Vue {
+export default class ResultsTableHeadings extends Vue {
     @Prop({ type: String, default: ""}) readonly section!: string;
     @Prop({ type: Array, required: true}) readonly columns!: ResultColumn[];
     @Prop({ type: Boolean, default: false }) readonly mobile!: boolean;
-    
-    get filtCol() {
-        return this.columns.filter(
-            c => (!c.category || c.category === this.section) &&
-            ((c.mobileOnly && this.mobile) || 
-             (c.desktopOnly && !this.mobile) ||
-             (!c.mobileOnly && !c.desktopOnly))
-        );
-    }
 }
 </script>
 
@@ -63,6 +54,7 @@ export default class ResultsFilters extends Vue {
     &-centred {
         display: flex;
         justify-content: center;
+        text-align: center;
     }
 
     &-prio {

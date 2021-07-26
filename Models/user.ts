@@ -1,5 +1,5 @@
 
-import { Entity, Column, BaseEntity, PrimaryGeneratedColumn, CreateDateColumn, OneToMany, JoinTable, Brackets, Index } from "typeorm";
+import { Entity, Column, BaseEntity, PrimaryGeneratedColumn, CreateDateColumn, OneToMany, JoinTable, Brackets, Index, ManyToMany } from "typeorm";
 import { DemeritReport } from "./demerits";
 import { MCAEligibility } from "./MCA_AYIM/mcaEligibility";
 import { GuestRequest } from "./MCA_AYIM/guestRequest";
@@ -101,7 +101,8 @@ export class User extends BaseEntity {
     @Column({ default: true })
     canComment!: boolean;
     
-    @OneToMany(() => Nomination, nomination => nomination.nominator)
+    @ManyToMany(() => Nomination, nomination => nomination.nominators)
+    @JoinTable()
     nominations!: Nomination[];
     
     @OneToMany(() => Nomination, nomination => nomination.user)
@@ -190,8 +191,11 @@ export class User extends BaseEntity {
                 .andWhere((qb) => {
                     const subQuery = qb.subQuery()
                         .from(Beatmapset, "beatmapset")
+                        .innerJoin("beatmapset.beatmaps", "beatmap")
                         .select("min(year(approvedDate))")
                         .andWhere("creatorID = user.ID")
+                        .andWhere(`beatmap.modeID = ${ModeDivisionType[modeString]}`)
+                        .andWhere(`beatmap.difficulty NOT LIKE '%\\'%'`)
                         .getQuery();
 
                     return subQuery + " = " + year;
@@ -231,11 +235,11 @@ export class User extends BaseEntity {
 
     public getAccessToken = async function(this: User, tokenType: "osu" | "discord" = "osu"): Promise<string> {
         const res = await User
-        .createQueryBuilder("user")
-        .select(tokenType === "osu" ? "osuAccesstoken" : "discordAccesstoken")
-        .where(`ID = ${this.ID}`)
-        .getRawOne();
-        return res[tokenType === "osu" ? "osuAccesstoken" : "discordAccesstoken"]
+            .createQueryBuilder("user")
+            .select(tokenType === "osu" ? "osuAccesstoken" : "discordAccesstoken")
+            .where(`ID = ${this.ID}`)
+            .getRawOne();
+        return res[tokenType === "osu" ? "osuAccesstoken" : "discordAccesstoken"];
     }
 
     public getCondensedInfo = function(this: User, chosen = false): UserChoiceInfo {

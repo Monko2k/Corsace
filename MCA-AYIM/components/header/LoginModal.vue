@@ -24,13 +24,17 @@
             </span>
         </div>
         <span 
+            v-if="loggedInUser"
             class="login__text"
             v-html="$t('mca_ayim.login.message.2')"
         />
-        <div class="login__auth">
+        <div 
+            v-if="loggedInUser"
+            class="login__auth"
+        >
             <img src="../../../Assets/img/social/discord.png">
             <a 
-                v-if="!loggedInUser || !loggedInUser.discord || !loggedInUser.discord.username"
+                v-if="!loggedInUser.discord || !loggedInUser.discord.username"
                 class="login__auth-text"
                 :href="'/api/login/discord?site=' + site + '&redirect=' + $route.fullPath"
             >

@@ -3,17 +3,17 @@
         <div class="category-selector">
             <dropdown-selector
                 :options="localCatTypes" 
-                :currentOption="activeCategoryType"
-                :styleLabel="catTypeStyle"
-                :styleDrop="catTypeDropStyle"
+                :current-option="activeCategoryType"
+                :style-label="catTypeStyle"
+                :style-drop="catTypeDropStyle"
                 class="category-type"
                 @relayOption="changeCategoryType"
             />
             <dropdown-selector 
                 :options="localAppCategories"
-                :currentOption="activeCategory"
-                :styleLabel="catStyle"
-                :styleDrop="catDropStyle"
+                :current-option="activeCategory"
+                :style-label="catStyle"
+                :style-drop="catDropStyle"
                 class="award-category"
                 @relayOption="changeCategory"
             />
@@ -40,7 +40,7 @@ const stageModule = namespace("stage");
 @Component({
     components: {
         DropdownSelector,
-        StagePageFilters
+        StagePageFilters,
     },
 })
 export default class ResultsFilters extends Vue {
@@ -63,7 +63,7 @@ export default class ResultsFilters extends Vue {
 
     filterCategories (type: CategoryType): CategoryStageInfo[] {
         return this.categoriesInfo
-            .filter(c => c.type === CategoryType[type] && c.mode === this.selectedMode);
+            .filter(c => c.type === CategoryType[type] && (c.mode === this.selectedMode || c.mode === "storyboard"));
     }
 
     // track current index of arrays selected by dropdowns
@@ -102,29 +102,29 @@ export default class ResultsFilters extends Vue {
     get catTypeStyle () {
         const longestStr = Math.max(...this.localCatTypes.map(lct => lct.toString().length));
         return {
-            'width': `${longestStr * 0.82}em`,
-        }
+            "width": `${longestStr * 0.82}em`,
+        };
     }
 
     get catStyle () {
         const longestStr = Math.max(...this.categoriesInfo.map(c => this.$t(`mca.categories.${c.name}.name`).toString().length));
         return {
-            'width': `${longestStr * 0.82}em`,
-            'clip-path': 'inset(-8px -8px -8px 0)'
-        }
+            "width": `${longestStr * 0.82}em`,
+            "clip-path": "inset(-8px -8px -8px 0)",
+        };
     }
 
     get catTypeDropStyle () {
         return {
-            'margin-left': this.catTypeStyle["margin-left"],
-            'width': this.catTypeStyle["width"]
-        }
+            "margin-left": this.catTypeStyle["margin-left"],
+            "width": this.catTypeStyle["width"],
+        };
     }
 
     get catDropStyle () {
         return {
-            'width': this.catStyle["width"]
-        }
+            "width": this.catStyle["width"],
+        };
     }
 }
 </script>
@@ -136,7 +136,7 @@ export default class ResultsFilters extends Vue {
 
 // this determines the width of stage-page-filters at which it wraps below
 //   the dropdowns
-$two-row-breakpoint: 56rem;
+$two-row-breakpoint: 35rem;
 
 .results-filters {
     top: 30%;

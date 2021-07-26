@@ -27,10 +27,27 @@ export default class ScrollBar extends Vue {
 
     async mounted () {
         const list = document.querySelector(this.selector);
+        const scrollTrack = document.querySelector(".scroll__bar");
 
         if (list) {
             list.addEventListener("scroll", this.handleScroll);
-            this.scrollSize = list.scrollHeight - list.clientHeight;
+        }
+
+        if (scrollTrack) {
+            scrollTrack.addEventListener("mousedown", this.handleJump);
+        }
+    }
+
+    beforeDestroy () {
+        const list = document.querySelector(this.selector);
+        const scrollTrack = document.querySelector(".scroll__bar");
+
+        if (list) {
+            list.removeEventListener("scroll", this.handleScroll);
+        }
+
+        if (scrollTrack) {
+            scrollTrack.removeEventListener("mousedown", this.handleJump);
         }
     }
     
@@ -48,6 +65,17 @@ export default class ScrollBar extends Vue {
         if (event.target) {
             this.scrollPos = event.target.scrollTop;
             this.scrollSize = event.target.scrollHeight - event.target.clientHeight; // U know... just in case the window size changes Lol
+        }
+    }
+
+    handleJump (event) {
+        const list = document.querySelector(this.selector);
+        if (event.target && list) {
+            this.scrollSize = list.scrollHeight - list.clientHeight;
+            const newScrollPos = event.offsetY / this.$el.clientHeight * this.scrollSize;
+            this.scrollPos = newScrollPos;   
+            
+            list.scrollTo({ top: newScrollPos });
         }
     }
 
@@ -77,6 +105,8 @@ export default class ScrollBar extends Vue {
     height: 100%;
     width: 7px;
     margin-right: 25px;
+
+    cursor: pointer;
 }
 
 .scroll__thumb {
