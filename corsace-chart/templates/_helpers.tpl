@@ -60,3 +60,76 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Shared environment by deployments
+*/}}
+{{- define "corsace-chart.env" -}}
+- name: DEPLOYMENT
+  value: production
+- name: DB_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: databaseHost
+- name: DISCORD_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: discordToken
+- name: DISCORD_CLIENTSECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: discordClientSecret
+- name: GOOGLE_CREDENTIALS_PRIVATEKEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: googleCredentialsPrivateKey
+- name: GOOGLE_CREDENTIALS_CLIENTEMAIL
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: googleCredentialsClientEmail
+- name: GOOGLE_SHEETS_TODO
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: googleSheetsTodo
+- name: GOOGLE_SHEETS_MAPPOOL
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: googleSheetsMappool
+- name: OSU_V1_APIKEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: osuv1ApiKey
+- name: OSU_V2_CLIENTID
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: osuv2ClientId
+- name: OSU_V2_CLIENTSECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: osuv2ClientSecret
+- name: KOA_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "corsace-chart.fullname" $ }}
+      key: koaKey
+- name: API_PUBLICURL
+  value: {{ default (printf "%s%s%s" "http://" (include "corsace-chart.fullname" $) "-api") $.Values.webServices.api.publicUrl }}
+{{- range $webServiceName, $webService := $.Values.webServices }}
+{{- if ne $webServiceName "api" }}
+- name: {{ $webServiceName | upper }}_PUBLICURL
+  value: {{ $webService.publicUrl }}
+- name: {{ $webServiceName | upper }}_SSR
+  value: "{{ $webService.ssr }}"
+{{- end }}
+{{- end }}
+{{- end }}

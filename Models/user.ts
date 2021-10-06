@@ -56,6 +56,9 @@ export class User extends BaseEntity {
     @Column(() => OAuth)
     osu!: OAuth;
 
+    @Column({ type: "tinytext" })
+    country!: string;
+
     @CreateDateColumn()
     registered!: Date;
     
@@ -261,7 +264,7 @@ export class User extends BaseEntity {
             discord: {
                 avatar: "https://cdn.discordapp.com/avatars/" + this.discord.userID + "/" + this.discord.avatar + ".png",
                 userID: this.discord.userID,
-                username: this.discord.username,
+                username: member ? `${member.user.username}#${member.user.discriminator}` : this.discord.username,
             },
             osu: {
                 avatar: this.osu.avatar,

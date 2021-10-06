@@ -23,10 +23,9 @@
                         <div class="map-info__map-artist">
                             {{ choice.artist }}
                         </div>
-                        <span class="map-info__map-host">
-                            {{ $t('mca.nom_vote.hosted') }} | 
-                            <span class="map-info__map-hoster">{{ choice.hoster }}</span>
-                        </span>
+                        <div class="map-info__map-hoster">
+                            {{ choice.hoster }}
+                        </div>
                     </div>
 
                     <!-- regular output for non-mobile view -->
@@ -38,7 +37,7 @@
                             { 'map-info__centred': col.centred }, 
                             { 'map-info__prio': col.prio }
                         ]"
-                        :style="{'flex': `${mobile && col.msize ? col.msize : col.size}`}"
+                        :style="flexFromCol(col.label)"
                     >
                         {{ col.label ? choice[col.label] : "" }}
                     </span>
@@ -111,7 +110,7 @@ export default class ResultsBeatmapsetCard extends Vue {
     box-sizing: border-box;
 
     border-radius: 10px;
-    padding: 15px;
+    padding: 10px 15px;
     width: 100%;
 
     background-size: cover;
@@ -122,21 +121,13 @@ export default class ResultsBeatmapsetCard extends Vue {
     font-size: $font-lg;
     text-decoration: none;
 
-    >* {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
     @extend %text-wrap;
+    >* {
+        @extend %text-wrap;
+    }
 
     &__title {
         font-weight: 500;
-        padding-right: 8px;
-    }
-
-    &__artist {
-        padding-right: 8px;
     }
 
     &__map {
@@ -145,25 +136,16 @@ export default class ResultsBeatmapsetCard extends Vue {
         &-title {
             text-shadow: 0 0 2px rgba(255,255,255,0.6);
             font-weight: 500;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         &-artist {
             font-size: $font-base;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         &-hoster {
             font-style: italic;
+            font-size: $font-base;
         }
-    }
-
-    &__hoster {
-        padding-right: 8px;
     }
 
     &__centred {

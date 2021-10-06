@@ -45,8 +45,7 @@ export interface ResultVote extends StaffVote {
     used: boolean;
     inRace: boolean;
     count: number;
-    firstPlaceCount: number;
-    totalCount: number;
+    placeCounts: Record<number, number>;
     placement: number;
 }
 
@@ -88,7 +87,7 @@ export function groupVotesByVoters (staffVotes: StaffVote[]): UserVote[] {
     return userVotes;
 }
 
-export function voteCounter (votes: UserVote[]): ResultVote[] {
+export function voteCounter (votes: UserVote[], year: number): ResultVote[] {
     if (votes.length === 0) return [];
 
     let candidates: ResultVote[] = [];
@@ -99,8 +98,7 @@ export function voteCounter (votes: UserVote[]): ResultVote[] {
             if (!candidates.some(candidate => vote.beatmapset?.ID ? vote.beatmapset?.ID === candidate.beatmapset?.ID : vote.user?.osuID === candidate.user?.osuID)) {
                 candidates.push({
                     count: 0,
-                    firstPlaceCount: 0,
-                    totalCount: 0,
+                    placeCounts: {},
                     inRace: true,
                     beatmapset: vote.beatmapset ?? undefined,
                     user: vote.user ?? undefined,
@@ -110,13 +108,14 @@ export function voteCounter (votes: UserVote[]): ResultVote[] {
     }
     candidates = candidates.filter((val, i, self) => self.findIndex(v => v.beatmapset?.ID ? v.beatmapset?.ID === val.beatmapset?.ID : v.user?.osuID === val.user?.osuID) === i);
     
-    // Get the first choice and total appearance counts in
+    // Get the place choice counts in
     for (const voter of votes) {
         for (const vote of voter.votes) {
             const k = candidates.findIndex(candidate => vote.beatmapset?.ID ? vote.beatmapset?.ID === candidate.beatmapset?.ID : vote.user?.osuID === candidate.user?.osuID);
-            if (vote.choice === 1)
-                candidates[k].firstPlaceCount++;
-            candidates[k].totalCount++; 
+            if (candidates[k].placeCounts[vote.choice])
+                candidates[k].placeCounts[vote.choice]++;
+            else
+                candidates[k].placeCounts[vote.choice] = 1;
         }
     }
 
@@ -163,10 +162,14 @@ export function voteCounter (votes: UserVote[]): ResultVote[] {
 
             // Check if this run is over, drop bottom votes from race otherwise
             const inRace = candidates.filter(candidate => candidate.inRace);
-            let sum = 0;
+            const next = candidates.filter(candidate => candidate.count !== candidates[0].count);
             const min = inRace[inRace.length - 1].count;
-            inRace.forEach(candidate => sum += candidate.count);
-            if (candidates[0].count > sum / 2.0 || candidates[0].count === min)
+            if (year === 2019) { // Version before voting counting was changed for 2020+
+                let sum = 0;
+                inRace.forEach(candidate => sum += candidate.count);
+                if (candidates[0].count > sum / 2.0 || candidates[0].count === min)
+                    break;
+            } else if ((next.length > 0 && candidates[0].count / 2.0 > next[0].count) || candidates[0].count === min)
                 break;
 
             for (let i = candidates.length - 1; i > 0; i--) {
