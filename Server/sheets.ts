@@ -16,7 +16,51 @@ const getToDoData = async () => (await sheetsClient.spreadsheets.values.get({
     spreadsheetId: config.google.sheets.todo,
     range: "todos!A2:E",
 })).data.values as any[][];
-// const getMappingSheet = () => sheetsClient.spreadsheets.get({spreadsheetId: config.google.sheets.mapping});
 
+async function getPoolData (pool: "openMappool" | "closedMappool", round: string) {
+    let data;
+    try {
+        data = (await sheetsClient.spreadsheets.values.get({
+            spreadsheetId: config.google.sheets[pool],
+            range: `'${round}'!A2:P`,
+        })).data.values as any[][];
+    } catch (e) {
+        if (e) data = undefined;
+    }
+    return data;
+}
 
-export { sheetsClient, getToDoData };
+async function updatePoolRow (pool: "openMappool" | "closedMappool", range: string, data: any[]) {
+    return sheetsClient.spreadsheets.values.update({
+        spreadsheetId: config.google.sheets[pool],
+        range,
+        valueInputOption: "RAW", 
+        requestBody: {
+            values: [ data ],
+        },
+    });
+}
+
+async function appendSongSubmission (isOpen: boolean, data: any[]) {
+    return sheetsClient.spreadsheets.values.append({
+        spreadsheetId: config.google.sheets.songs,
+        range: `${isOpen ? "CO" : "CC"} Submissions`,
+        valueInputOption: "RAW",
+        requestBody: {
+            values: [ data ],
+        },
+    });
+}
+
+async function appendToHistory (pool: "openMappool" | "closedMappool", data: any[]) {
+    return sheetsClient.spreadsheets.values.append({
+        spreadsheetId: config.google.sheets[pool],
+        range: "history",
+        valueInputOption: "RAW",
+        requestBody: {
+            values: [ data ],
+        },
+    });
+}
+
+export { sheetsClient, getToDoData, getPoolData, updatePoolRow, appendSongSubmission, appendToHistory };

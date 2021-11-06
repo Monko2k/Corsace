@@ -33,7 +33,9 @@ secrets:
       clientEmail: ""
     sheets:
       todo: ""
-      mappool: ""
+      openMappool: ""
+      closedMappool: ""
+      songs: ""
   osu:
     v1:
       apiKey: ""

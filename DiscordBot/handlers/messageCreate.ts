@@ -1,9 +1,11 @@
+import { config } from "node-config-ts";
 import { Message } from "discord.js";
 import { discordClient } from "../../Server/discord";
 import { commands } from "../commands";
 import beatmap from "../commands/osu/beatmap";
 import profile from "../commands/osu/profile";
-import osuTimestamp from "../commandsInexplicit/osuTimestamp";
+import mappoolSong from "../commandsInexplicit/mappool/song";
+import osuTimestamp from "../commandsInexplicit/osu/osuTimestamp";
 
 export default async function messageCreate (m: Message) {
     const prefix = /^!(\S+)/i;
@@ -25,17 +27,20 @@ export default async function messageCreate (m: Message) {
     if (timestampRegex.test(noEmoji))
         osuTimestamp(m);
 
+    if (m.channel.id === config.discord.openMappool.songSubmission || m.channel.id === config.discord.closedMappool.songSubmission)
+        mappoolSong(m, m.channel.id === config.discord.openMappool.songSubmission);
+
     // Command checking TODO: Add custom prefix (relies on discord server model)
     if (prefix.test(m.content)) {
         const commandName = prefix.exec(m.content);
         if (!commandName)
             return;
-
-        const command =  commands.find(cmd => cmd.name.some(name => name === commandName[1].toLowerCase()));
-        if (!command)
-            return;
-
-        await command.command(m);
+        
+        for (const command of commands) { 
+            if (!command.name.some(name => name === commandName[1].toLowerCase()))
+                continue;
+            await command.command(m);
+        }
     }
 
     // Check for an osu! profile linked
