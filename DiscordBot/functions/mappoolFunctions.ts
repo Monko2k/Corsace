@@ -32,9 +32,9 @@ function identifierToPool (identifier: string): "openMappool" | "closedMappool" 
 
 async function pingChannel (pool: "openMappool" | "closedMappool") {
     if (pool === "openMappool")
-        return (await discordClient.channels.fetch(config.discord.openMappool.general, false, true)) as TextChannel;
+        return (await discordClient.channels.fetch(config.discord.openMappool.general)) as TextChannel;
     if (pool === "closedMappool")
-        return (await discordClient.channels.fetch(config.discord.closedMappool.general, false, true)) as TextChannel;
+        return (await discordClient.channels.fetch(config.discord.closedMappool.general)) as TextChannel;
 }
 
 async function privilegeChecks (m: Message, mappers: boolean, testplayers: boolean, updateOnly = false): Promise<boolean> {
@@ -96,7 +96,7 @@ async function parseParams (m: Message) {
     let user = await getMember(m.author.id) as GuildMember;
     let round = "";
     let slot = "";
-    let deadlineType: "preview" | "map" = "map";
+    let deadlineType: "preview" | "map" | "" = "";
     let link = "";
     let diffName = "";
 

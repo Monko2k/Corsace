@@ -65,7 +65,8 @@ async function command (m: Message) {
                 const lengthMs = beatmap.objects[beatmap.objects.length - 1].time - beatmap.objects[0].time;
                 const lengthSec = lengthMs / 1000;
                 const lengthMin = Math.round(lengthSec / 60);
-                length = `${lengthMin}:${(lengthSec % 60).toFixed(0)}`;
+                const lengthMod = lengthSec % 60;
+                length = `${lengthMin}:${lengthMod >= 10 ? lengthMod.toFixed(0) : "0" + lengthMod.toFixed(0)}`;
 
                 // Obtaining bpm
                 const timingPoints = beatmap.timing_points.filter(line => line.change === true).map(line => {
@@ -103,7 +104,7 @@ async function command (m: Message) {
                     (slot !== "" && slot.toLowerCase() === row[0].toLowerCase()) // slot given
                 ) {
                     await Promise.all([
-                        updatePoolRow(pool, `'${round}'!C${i + 2}:M${i + 2}`, [ artist, title, diff, length, bpm, sr, cs, ar, od, hp, "" ]),
+                        updatePoolRow(pool, `'${round}'!C${i + 2}:N${i + 2}`, [ artist, title, diff, length, bpm, sr, cs, ar, od, hp, "", "" ]),
                         updatePoolRow(pool, `'${round}'!O${i + 2}`, [ link ]),
                         appendToHistory(pool, [ (new Date).toUTCString(), `${round.toUpperCase()}${slot ? slot.toUpperCase() : row[0].toUpperCase()}`, artist, title, m.member?.nickname ?? m.author.username, link ]),
                     ]);
@@ -117,9 +118,9 @@ async function command (m: Message) {
     } finally {
         waiting.delete();
         if (message)
-            message.delete({timeout: 5000});
+            setTimeout(() => message!.delete(), 5000);
         if (!success)
-            m.delete({timeout: 5000});
+            setTimeout(() => m.delete(), 5000);
         else
             m.react("✅");
     }
