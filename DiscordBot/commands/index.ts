@@ -15,6 +15,7 @@ import mark from "./utility/mark";
 import prio from "./utility/prio";
 import todo from "./utility/todo";
 import todoList from "./utility/todoList";
+import roll from "./utility/roll";
 
 import beatmap from "./osu/beatmap";
 import profile from "./osu/profile";
@@ -50,6 +51,7 @@ commands.push(mark);
 commands.push(prio);
 commands.push(todo);
 commands.push(todoList);
+commands.push(roll);
 
 // osu! commands
 commands.push(beatmap);
