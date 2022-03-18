@@ -3,6 +3,7 @@ import { isLoggedInDiscord, isStaff } from "../../../../Server/middleware";
 import { Vote } from "../../../../Models/MCA_AYIM/vote";
 import { StaffVote } from "../../../../Interfaces/vote";
 import { MoreThan, Not } from "typeorm";
+import { parseQueryParam } from "../../../../Server/utils/query";
 
 const staffVotesRouter = new Router;
 
@@ -11,12 +12,12 @@ staffVotesRouter.use(isStaff);
 
 // Endpoint for getting information for a category
 staffVotesRouter.get("/", async (ctx) => {
-    let categoryID = ctx.query.category;
+    const categoryIDString = parseQueryParam(ctx.query.category);
     
-    if (!categoryID || !/\d+/.test(categoryID))
+    if (!categoryIDString || !/\d+/.test(categoryIDString))
         return ctx.body = { error: "Invalid category ID given!" };
 
-    categoryID = parseInt(categoryID);
+    const categoryID = parseInt(categoryIDString);
 
     const votes = await Vote
         .createQueryBuilder("vote")
@@ -25,7 +26,9 @@ staffVotesRouter.get("/", async (ctx) => {
         .leftJoin("vote.user", "user")
         .leftJoin("vote.beatmapset", "beatmapset")
         .leftJoin("beatmapset.creator", "creator")
-        .leftJoin("beatmapset.beatmaps", "beatmap")
+        .leftJoin("vote.beatmap", "beatmap")
+        .leftJoin("beatmap.beatmapset", "beatmapBeatmapset")
+        .leftJoin("beatmapBeatmapset.creator", "beatmapsetCreator")
         .select("vote.ID", "ID")
         .addSelect("category.ID", "categoryID")
         .addSelect("vote.choice", "choice")
@@ -46,6 +49,16 @@ staffVotesRouter.get("/", async (ctx) => {
         .addSelect("creator.osuUserid", "creatorID")
         .addSelect("creator.osuUsername", "creatorOsu")
         .addSelect("creator.discordUsername", "creatorDiscord")
+    // beatmap selects
+        .addSelect("beatmap.ID", "beatmapID")
+        .addSelect("beatmap.difficulty", "difficulty")
+        .addSelect("beatmapBeatmapset.ID", "beatmapBeatmapsetID")
+        .addSelect("beatmapBeatmapset.artist", "beatmapBeatmapsetArtist")
+        .addSelect("beatmapBeatmapset.title", "beatmapBeatmapsetTitle")
+        .addSelect("beatmapBeatmapset.tags", "beatmapBeatmapsetTags")
+        .addSelect("beatmapsetCreator.osuUserid", "beatmapsetCreatorID")
+        .addSelect("beatmapsetCreator.osuUsername", "beatmapsetCreatorOsu")
+        .addSelect("beatmapsetCreator.discordUsername", "beatmapsetCreatorDiscord")
     // wheres + groups + orders
         .where("category.ID = :id", { id: categoryID })
         .groupBy("vote.ID")
@@ -84,6 +97,23 @@ staffVotesRouter.get("/", async (ctx) => {
                 },
             };
         }
+        if (vote.beatmapID) {
+            staffVote.beatmap = {
+                ID: vote.beatmapID,
+                difficulty: vote.difficulty, 
+            };
+            staffVote.beatmapset = {
+                ID: vote.beatmapBeatmapsetID,
+                artist: vote.beatmapBeatmapsetArtist,
+                title: vote.beatmapBeatmapsetTitle,
+                tags: vote.beatmapBeatmapsetTags,
+                creator: {
+                    osuID: vote.beatmapsetCreatorID,
+                    osuUsername: vote.beatmapsetCreatorOsu,
+                    discordUsername: vote.beatmapsetCreatorDiscord,
+                },
+            };
+        }
         return staffVote;
     });
 
@@ -102,10 +132,12 @@ staffVotesRouter.delete("/:id/:user", async (ctx) => {
     });
 
     const otherUserVotes = await Vote.find({
-        ID: Not(ctx.params.id),
-        voter: ctx.params.user,
-        category: vote.category,
-        choice: MoreThan(vote.choice),
+        where: {
+            ID: Not(ctx.params.id),
+            voter: ctx.params.user,
+            category: vote.category,
+            choice: MoreThan(vote.choice),
+        },
     });
 
     await vote.remove();

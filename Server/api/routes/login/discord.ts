@@ -41,7 +41,7 @@ discordRouter.get("/callback", async (ctx: ParameterizedContext, next) => {
                         discordUser.roles.add(config.discord.roles.corsace.verified),
                     ]);
                 } catch (e) {
-                    await guild.addMember(user.discord.userID, {
+                    await guild.members.add(user.discord.userID, {
                         accessToken: user.discord.accessToken,
                         nick: user.osu.username,
                         roles: [config.discord.roles.corsace.verified, config.discord.roles.corsace.streamAnnouncements],
@@ -56,8 +56,10 @@ discordRouter.get("/callback", async (ctx: ParameterizedContext, next) => {
             ctx.cookies.set("redirect", "");
             ctx.redirect(redirect ?? "back");
         } else {
-            ctx.status = 400;
-            ctx.body = { error: err.message };
+            const redirect = ctx.cookies.get("redirect");
+            ctx.cookies.set("redirect", "");
+            ctx.redirect(redirect ?? "back");
+            return;
         }
     })(ctx, next);
 });

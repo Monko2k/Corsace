@@ -244,7 +244,7 @@ export default class StaffComments extends Vue {
     async ban (id: number) {
         this.info = "";
 
-        if (!confirm(`User will not be able to submit new comments and not validated comments will be removed. Are you sure?`)) 
+        if (!confirm(`User will not be able to submit new comments and invalidated comments will be removed. Are you sure?`)) 
             return;
         
         const { data } = await this.$axios.post(`/api/staff/users/${id}/ban`);
