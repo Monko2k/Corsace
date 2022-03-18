@@ -41,6 +41,31 @@ export interface Beatmap {
     speedSR?: number;
     totalSR: number;
 }
+export interface TournamentBeatmapInfo {
+    ID: number;
+    beatmapsetID: number;
+    beatmapset: BeatmapsetInfo;
+    totalLength: number;
+    hitLength: number;
+    difficulty: string;
+    circleSize: number;
+    overallDifficulty: number;
+    approachRate: number;
+    hpDrain: number;
+    circles: number;
+    sliders: number;
+    spinners: number;
+    rating: number;
+    storyboard: boolean;
+    video: boolean;
+    playCount: number;
+    passCount: number;
+    packs?: string;
+    maxCombo?: number;
+    aimSR?: number;
+    speedSR?: number;
+    totalSR: number;
+}
 
 export interface BeatmapsetInfo {
     id: number;
